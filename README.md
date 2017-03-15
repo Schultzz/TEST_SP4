@@ -1,4 +1,4 @@
 # startCodeForTesting1
 
-![alt tag](https://github.com/Schultzz/TEST_SP4/pic.png)
+![alt tag](https://raw.githubusercontent.com/Schultzz/TEST_SP4/master/pic.png)
 
