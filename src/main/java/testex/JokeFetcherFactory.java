@@ -38,6 +38,7 @@ public class JokeFetcherFactory implements IFetcherFactory {
 
     @Override
     public List<IJokeFetcher> getJokeFetchers(String jokesToFetch) {
+
         List<IJokeFetcher> jokes = new ArrayList<>();
 
         String[] tokens = jokesToFetch.split(",");

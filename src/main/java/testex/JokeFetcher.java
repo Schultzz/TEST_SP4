@@ -1,6 +1,5 @@
 
 package testex;
-import static com.jayway.restassured.RestAssured.given;
 
 import testex.Entities.ChuckNorris;
 import testex.Entities.EduJoke;
@@ -79,7 +78,7 @@ public class JokeFetcher {
     IFetcherFactory jokeFetcherFactory = new JokeFetcherFactory(new EduJoke(), new ChuckNorris(), new Moma(), new Tambal());
 
     JokeFetcher jf = new JokeFetcher(dateFormatter, jokeFetcherFactory);
-    Jokes jokes = jf.getJokes("eduprog,chucknorris,chucknorris,moma,tambal","Europe/Copenhagen");
+    Jokes jokes = jf.getJokes("EduJoke,ChuckNorris,Moma,Tambal","Europe/Copenhagen");
     jokes.getJokes().forEach((joke) -> {
       System.out.println(joke);
     });

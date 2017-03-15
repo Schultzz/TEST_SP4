@@ -1,5 +1,7 @@
 package testex;
 
+import org.hamcrest.beans.HasPropertyWithValue;
+import org.hamcrest.core.Every;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,12 +15,12 @@ import testex.Interfaces.IDataFormatter;
 import testex.Interfaces.IFetcherFactory;
 import testex.Interfaces.IJokeFetcher;
 
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -31,33 +33,40 @@ import static org.mockito.Mockito.*;
 public class JokeFetcherTest {
 
     private JokeFetcher jf = null;
+    private Date date;
+    private String expectedDateFormat = "01 jan. 2000 00:00 PM";
 
     @Mock
-    IDataFormatter dataFormatterMock;
+    private IDataFormatter dataFormatterMock;
     @Mock
-    IFetcherFactory factory;
+    private IFetcherFactory factory;
     @Mock
-    EduJoke eduJoke;
+    private EduJoke eduJoke;
     @Mock
-    ChuckNorris chuckNorris;
+    private ChuckNorris chuckNorris;
     @Mock
-    Moma moma;
+    private Moma moma;
     @Mock
-    Tambal tambal;
+    private Tambal tambal;
 
 
     @Before
-    public void setUp() {
+    public void setUp() throws JokeException {
+
+        date = new Date(946681200000L);
+
+        when(dataFormatterMock.getFormattedDate(date,"Europe/Copenhagen")).thenReturn(expectedDateFormat);
 
         List<IJokeFetcher> fetcher = Arrays.asList(chuckNorris, eduJoke, moma, tambal);
-        when(factory.getJokeFetchers("eduprog,chucknorris,chucknorris,moma,tambal")).thenReturn(fetcher);
+        when(factory.getJokeFetchers("EduJoke,ChuckNorris,Moma,Tambal")).thenReturn(fetcher);
 
         List<String> types = Arrays.asList("EduJoke", "ChuckNorris", "Moma", "Tambal");
         when(factory.getAvailableTypes()).thenReturn(types);
 
-        Joke joke = new Joke("testJoke", "testReference");
-        given(chuckNorris.getJoke()).willReturn(joke);
+        Joke joke = new Joke("new joke", "reference");
+
         given(eduJoke.getJoke()).willReturn(joke);
+        given(chuckNorris.getJoke()).willReturn(joke);
         given(moma.getJoke()).willReturn(joke);
         given(tambal.getJoke()).willReturn(joke);
 
@@ -67,10 +76,22 @@ public class JokeFetcherTest {
 
 
     @Test
-    public void getJokes(){
+    public void getJokes() throws JokeException {
+
+        List<Joke> mockedJokes = jf.getJokes("EduJoke,ChuckNorris,Moma,Tambal", "Europe/Copenhagen").getJokes();
+
+        assertThat(mockedJokes,
+                Every.everyItem(HasPropertyWithValue.hasProperty("joke", is("new joke"))));
+
+        verify(dataFormatterMock, times(1)).getFormattedDate(date, "Europe/Copenhagen");
+        verify(factory, times(1)).getJokeFetchers("EduJoke,ChuckNorris,Moma,Tambal");
+    }
 
 
-
+    @Test
+    public void getJokeFetchers() {
+        List<IJokeFetcher> fetcher = factory.getJokeFetchers("EduJoke,ChuckNorris,Moma,Tambal");
+        assertThat(fetcher, containsInAnyOrder(eduJoke,chuckNorris, moma, tambal));
     }
 
     @Test
@@ -80,7 +101,7 @@ public class JokeFetcherTest {
 
         List<Joke> jokeList = jokes.getJokes();
 
-        assertThat(jokeList, hasSize(0));
+        assertThat(jokeList, hasSize(4));
     }
 
     @Test
@@ -104,12 +125,9 @@ public class JokeFetcherTest {
 
     @Test
     public void testDateFormatterMock() throws JokeException {
-        Date date = new Date(946681200000L);
-        String expectedDateFormat = "01 jan. 2000 00:00 PM";
-        //Given
-        when(dataFormatterMock.getFormattedDate(date,"Europe/Copenhagen")).thenReturn(expectedDateFormat);
-        assertThat(dataFormatterMock.getFormattedDate(date, "Europe/Copenhagen"), is(expectedDateFormat));
 
+
+        assertThat(dataFormatterMock.getFormattedDate(date, "Europe/Copenhagen"), is(expectedDateFormat));
         //Verify
         verify(dataFormatterMock, times(1)).getFormattedDate(date, "Europe/Copenhagen");
 
